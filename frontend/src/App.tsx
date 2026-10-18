@@ -85,14 +85,6 @@ function Nav() {
           <a href="#concepts" className="hover:text-cyan-400 transition-colors">Concepts</a>
           <a href="#dashboard" className="hover:text-cyan-400 transition-colors">My Dashboard</a>
           <a href="#assistant" className="hover:text-cyan-400 transition-colors">Ask AI</a>
-          <a
-            href="/api/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3 py-1.5 bg-cyan-500/15 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/25 transition-colors font-mono"
-          >
-            API Docs
-          </a>
         </div>
       </div>
     </nav>
@@ -135,42 +127,8 @@ function Hero() {
       </div>
 
       {/* Stats row */}
-      <div className="mb-8">
+      <div className="mb-4">
         <StatsBar />
-      </div>
-
-      {/* Quick feature pill navigation */}
-      <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
-        <a
-          href="#explore"
-          className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5"
-        >
-          🌍 <span>3D Orbit Explorer</span>
-        </a>
-        <a
-          href="#launches"
-          className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5"
-        >
-          🚀 <span>Rocket Launch Radar</span>
-        </a>
-        <a
-          href="#concepts"
-          className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5"
-        >
-          📖 <span>Plain-English Concepts</span>
-        </a>
-        <a
-          href="#dashboard"
-          className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5"
-        >
-          🎯 <span>Role Dashboard & Quiz</span>
-        </a>
-        <a
-          href="#assistant"
-          className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500/30 hover:to-purple-500/30 border border-cyan-500/40 text-cyan-300 font-semibold transition flex items-center gap-1.5"
-        >
-          ✨ <span>Ask ORBITLY AI</span>
-        </a>
       </div>
     </section>
   )
@@ -325,9 +283,6 @@ function Footer() {
           ORBITLY · Global Orbital Intelligence Platform · Real data, real physics, real orbits
         </div>
         <div className="flex items-center gap-6 text-slate-400 text-xs">
-          <a href="/api/docs" target="_blank" className="hover:text-cyan-400 transition-colors">
-            API Documentation
-          </a>
           <a href="/api/health" target="_blank" className="hover:text-cyan-400 transition-colors">
             System Health
           </a>
