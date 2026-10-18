@@ -122,3 +122,104 @@ export interface CatalogStats {
   geo_count: number
   last_updated: string | null
 }
+
+// ── Extended Features Types ──────────────────────
+
+export interface RocketLaunch {
+  id: string
+  name: string
+  provider: string
+  vehicle: string
+  pad: string
+  window_start: string
+  status: string
+  orbit_type: string
+  payload_description: string
+  mission_type: string
+  countdown_seconds: number | null
+  webcast_url: string | null
+}
+
+export interface SpaceConcept {
+  slug: string
+  title: string
+  tagline: string
+  icon: string
+  eli10: string
+  college: string
+  formula: string | null
+  real_example_name: string
+  real_example_id: string
+  real_example_stat: string
+  visual_type: string
+}
+
+export interface QuizQuestion {
+  id: number
+  question: string
+  options: string[]
+  correct_index: number
+  explanation: string
+  hint: string
+}
+
+export interface VisiblePass {
+  satellite_name: string
+  norad_id: number
+  rise_time: string
+  max_elevation: string
+  magnitude: string
+  naked_eye: boolean
+  direction: string
+}
+
+export interface CommercialService {
+  category: string
+  constellation: string
+  resolution: string | null
+  revisit_rate: string
+  business_use_case: string
+}
+
+export interface ClassroomTopic {
+  grade_level: string
+  title: string
+  physics_principle: string
+  activity: string
+  satellite_lab: string
+}
+
+export interface RoleDashboardData {
+  role: 'student' | 'astronomer' | 'business' | 'educator'
+  headline: string
+  subtext: string
+  quick_stats: Record<string, string>
+  quiz?: QuizQuestion[]
+  visible_passes?: VisiblePass[]
+  commercial_services?: CommercialService[]
+  classroom_topics?: ClassroomTopic[]
+}
+
+export interface AssistantQuery {
+  question: string
+  satellite_id?: string
+  mode?: 'eli10' | 'college' | 'balanced'
+}
+
+export interface AssistantDataPoint {
+  label: string
+  value: string
+  unit?: string | null
+}
+
+export interface AssistantResponse {
+  question: string
+  answer: string
+  eli10_summary: string
+  verified: boolean
+  data_points: AssistantDataPoint[]
+  source: string
+  visual_cue?: string | null
+  suggested_followups: string[]
+}
+

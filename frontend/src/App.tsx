@@ -1,14 +1,18 @@
-import { Suspense, lazy, useEffect } from 'react'
+import { Suspense, lazy } from 'react'
 import { SearchBar } from './components/SearchBar'
 import { SatellitePanel } from './components/SatellitePanel'
 import { FeaturedSatellites } from './components/FeaturedSatellites'
 import { StatsBar } from './components/StatsBar'
-import { useFeaturedSatellites } from './hooks/useSatellites'
+import { LaunchTracker } from './components/LaunchTracker'
+import { ConceptVisualizer } from './components/ConceptVisualizer'
+import { PersonalizedDashboard } from './components/PersonalizedDashboard'
+import { AskOrbitlyAssistant } from './components/AskOrbitlyAssistant'
+import { useFeaturedSatellites, useSelectSatellite } from './hooks/useSatellites'
 import { useOrbitlyStore } from './store/orbitly'
 import './index.css'
 
 // Lazy-load the heavy 3D globe
-const Globe3D = lazy(() => import('./components/Globe3D').then(m => ({ default: m.Globe3D })))
+const Globe3D = lazy(() => import('./components/Globe3D').then((m) => ({ default: m.Globe3D })))
 
 // ──────────────────────────────────────────────────
 // Background star particles
@@ -57,30 +61,35 @@ function GridOverlay() {
 // ──────────────────────────────────────────────────
 function Nav() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-md bg-slate-950/70 border-b border-slate-800/60">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Logo */}
           <div className="w-8 h-8 relative">
-            <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-pulse-slow" />
+            <div className="absolute inset-0 bg-cyan-500/20 rounded-full animate-pulse-slow" />
             <svg viewBox="0 0 32 32" className="w-8 h-8 relative z-10">
-              <circle cx="16" cy="16" r="6" fill="none" stroke="#3b82f6" strokeWidth="1.5" />
+              <circle cx="16" cy="16" r="6" fill="none" stroke="#06b6d4" strokeWidth="1.5" />
               <ellipse cx="16" cy="16" rx="14" ry="6" fill="none" stroke="#3b82f6" strokeWidth="1" opacity="0.5" />
-              <circle cx="28" cy="12" r="2" fill="#60a5fa" />
+              <circle cx="28" cy="12" r="2" fill="#38bdf8" />
             </svg>
           </div>
-          <span className="text-white font-semibold text-lg tracking-tight">ORBITLY</span>
-          <span className="text-white/20 text-xs font-mono ml-1">v1.0</span>
+          <span className="text-white font-bold text-lg tracking-tight">ORBITLY</span>
+          <span className="text-cyan-400/60 text-xs font-mono ml-1 px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
+            v2.0 PRO
+          </span>
         </div>
 
-        <div className="hidden md:flex items-center gap-6 text-sm text-white/50">
-          <a href="#explore" className="hover:text-white/80 transition-colors">Explore</a>
-          <a href="#about" className="hover:text-white/80 transition-colors">About</a>
+        <div className="hidden lg:flex items-center gap-6 text-xs font-medium text-slate-300">
+          <a href="#explore" className="hover:text-cyan-400 transition-colors">3D Map</a>
+          <a href="#launches" className="hover:text-cyan-400 transition-colors">Rocket Radar</a>
+          <a href="#concepts" className="hover:text-cyan-400 transition-colors">Concepts</a>
+          <a href="#dashboard" className="hover:text-cyan-400 transition-colors">My Dashboard</a>
+          <a href="#assistant" className="hover:text-cyan-400 transition-colors">Ask AI</a>
           <a
-            href="http://localhost:8000/api/docs"
+            href="/api/docs"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1.5 bg-blue-500/15 border border-blue-500/30 rounded-lg text-blue-400 hover:bg-blue-500/25 transition-colors text-xs font-mono"
+            className="px-3 py-1.5 bg-cyan-500/15 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/25 transition-colors font-mono"
           >
             API Docs
           </a>
@@ -95,25 +104,29 @@ function Nav() {
 // ──────────────────────────────────────────────────
 function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-20">
+    <section className="relative min-h-[85vh] flex flex-col items-center justify-center px-6 pt-24 pb-12">
       {/* Data pipeline indicator */}
-      <div className="flex items-center gap-2 mb-8">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
-          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-          <span className="text-green-400 text-xs font-mono">LIVE · CelesTrak · SGP4</span>
+      <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full">
+          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+          <span className="text-emerald-400 text-xs font-mono font-semibold">
+            LIVE CelesTrak GP Feed · SGP4 Propagated · AI Grounded
+          </span>
         </div>
       </div>
 
       {/* Headline */}
-      <h1 className="text-center font-bold mb-6" style={{ fontSize: 'clamp(2.5rem, 7vw, 5.5rem)', lineHeight: 1.05 }}>
-        <span className="text-gradient">Space Data.</span>
+      <h1 className="text-center font-extrabold mb-6" style={{ fontSize: 'clamp(2.5rem, 6.5vw, 5rem)', lineHeight: 1.05 }}>
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300">
+          Space Data.
+        </span>
         <br />
-        <span className="text-white/80">Finally Human.</span>
+        <span className="text-white">Understood by Everyone.</span>
       </h1>
 
-      <p className="text-center text-white/45 max-w-xl mx-auto mb-10 text-lg font-light leading-relaxed">
-        Real satellite data from CelesTrak, computed by SGP4 orbital mechanics,
-        translated into language anyone can understand.
+      <p className="text-center text-slate-400 max-w-2xl mx-auto mb-10 text-base sm:text-lg font-light leading-relaxed">
+        Live satellite tracking, upcoming rocket launch countdowns, dual-mode plain-English orbital concepts,
+        and an intelligent conversational AI grounded in real telemetry.
       </p>
 
       {/* Search */}
@@ -122,84 +135,42 @@ function Hero() {
       </div>
 
       {/* Stats row */}
-      <div className="mb-16">
+      <div className="mb-8">
         <StatsBar />
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/25">
-        <span className="text-xs tracking-widest uppercase">Scroll to explore</span>
-        <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
-    </section>
-  )
-}
-
-// ──────────────────────────────────────────────────
-// How it works section
-// ──────────────────────────────────────────────────
-function HowItWorks() {
-  const steps = [
-    {
-      icon: '📡',
-      label: 'CelesTrak',
-      desc: 'Real TLE data fetched from the authoritative satellite catalog',
-      tech: 'TLE / JSON feed',
-    },
-    {
-      icon: '⚙️',
-      label: 'Python Backend',
-      desc: 'FastAPI processes, validates, and normalizes raw TLE data',
-      tech: 'FastAPI · Pydantic',
-    },
-    {
-      icon: '🔭',
-      label: 'SGP4 Propagation',
-      desc: 'Real orbital math computes position from raw TLE elements',
-      tech: 'sgp4 library',
-    },
-    {
-      icon: '🧠',
-      label: 'Intelligence Layer',
-      desc: 'Gemini AI transforms technical numbers into plain English',
-      tech: 'Gemini · Deterministic fallback',
-    },
-    {
-      icon: '🌍',
-      label: '3D Visualization',
-      desc: 'Three.js renders orbit paths and positions on an interactive Earth',
-      tech: 'Three.js · R3F',
-    },
-  ]
-
-  return (
-    <section id="about" className="py-24 px-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <div className="text-blue-400/60 text-xs uppercase tracking-widest mb-3">Architecture</div>
-          <h2 className="text-white text-3xl font-bold mb-4">How the Data Pipeline Works</h2>
-          <p className="text-white/40 max-w-lg mx-auto">
-            Not a mockup — a real data pipeline from satellite catalog to your screen.
-          </p>
-        </div>
-
-        <div className="flex flex-col md:flex-row items-start gap-0">
-          {steps.map((step, i) => (
-            <div key={i} className="flex flex-col md:flex-row items-center flex-1">
-              <div className="flex flex-col items-center text-center p-4 flex-1">
-                <div className="text-3xl mb-3">{step.icon}</div>
-                <div className="text-white font-semibold text-sm mb-1">{step.label}</div>
-                <div className="text-white/50 text-xs leading-relaxed mb-2">{step.desc}</div>
-                <div className="text-blue-400/60 font-mono text-xs">{step.tech}</div>
-              </div>
-              {i < steps.length - 1 && (
-                <div className="hidden md:block text-white/15 text-2xl mx-2">→</div>
-              )}
-            </div>
-          ))}
-        </div>
+      {/* Quick feature pill navigation */}
+      <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
+        <a
+          href="#explore"
+          className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5"
+        >
+          🌍 <span>3D Orbit Explorer</span>
+        </a>
+        <a
+          href="#launches"
+          className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5"
+        >
+          🚀 <span>Rocket Launch Radar</span>
+        </a>
+        <a
+          href="#concepts"
+          className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5"
+        >
+          📖 <span>Plain-English Concepts</span>
+        </a>
+        <a
+          href="#dashboard"
+          className="px-4 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition flex items-center gap-1.5"
+        >
+          🎯 <span>Role Dashboard & Quiz</span>
+        </a>
+        <a
+          href="#assistant"
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500/30 hover:to-purple-500/30 border border-cyan-500/40 text-cyan-300 font-semibold transition flex items-center gap-1.5"
+        >
+          ✨ <span>Ask ORBITLY AI</span>
+        </a>
       </div>
     </section>
   )
@@ -212,50 +183,58 @@ function GlobeSection() {
   const { selectedSatellite } = useOrbitlyStore()
 
   return (
-    <section id="explore" className="relative py-12 px-6">
+    <section id="explore" className="relative py-12 px-6 scroll-mt-20">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <div className="text-blue-400/60 text-xs uppercase tracking-widest mb-3">Live Orbital Visualization</div>
-          <h2 className="text-white text-3xl font-bold mb-3">
-            Earth's Active Satellites
+          <div className="text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-2">
+            Interactive Earth Telemetry
+          </div>
+          <h2 className="text-white text-3xl font-extrabold mb-3">
+            Live 3D Satellite Radar
           </h2>
-          <p className="text-white/40 text-sm">
-            Select a satellite to see its real orbit path computed from live TLE data
+          <p className="text-slate-400 text-sm max-w-xl mx-auto">
+            Real orbital paths computed dynamically using SGP4 mathematical models and live CelesTrak TLE feeds
           </p>
         </div>
 
         {/* Globe + sidebar layout */}
         <div className="relative flex flex-col lg:flex-row gap-6 items-start">
           {/* Globe */}
-          <div className="flex-1 relative rounded-3xl overflow-hidden border border-white/8"
-            style={{ height: '70vh', minHeight: '500px' }}>
+          <div
+            className="flex-1 relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl"
+            style={{ height: '70vh', minHeight: '520px', width: '100%' }}
+          >
             <div
               className="absolute inset-0 rounded-3xl"
               style={{
                 background: 'radial-gradient(ellipse at center, #020c1b 0%, #000000 100%)',
               }}
             />
-            <Suspense fallback={
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-10 h-10 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-3" />
-                  <div className="text-white/40 text-sm">Loading 3D engine...</div>
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-10 h-10 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-3" />
+                    <div className="text-slate-400 text-sm font-medium">Loading 3D space engine...</div>
+                  </div>
                 </div>
-              </div>
-            }>
+              }
+            >
               <Globe3D />
             </Suspense>
 
             {/* Overlay labels */}
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-              <span className="text-white/50 text-xs font-mono">LIVE · SGP4 propagated</span>
+            <div className="absolute top-4 left-4 flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-full border border-slate-800">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="text-slate-300 text-xs font-mono font-medium">LIVE · SGP4 Propagated</span>
             </div>
 
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-              <div className="text-white/25 text-xs">Drag to rotate · Scroll to zoom</div>
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+              <div className="text-slate-400 text-xs bg-slate-950/70 px-3 py-1 rounded-full border border-slate-800">
+                Drag to rotate · Scroll to zoom · Click to inspect
+              </div>
               {selectedSatellite && (
-                <div className="text-yellow-400/70 text-xs font-mono">
+                <div className="text-amber-300 text-xs font-mono font-bold bg-slate-950/80 px-3 py-1 rounded-full border border-amber-500/30">
                   ◉ {selectedSatellite.satellite.name}
                 </div>
               )}
@@ -269,17 +248,22 @@ function GlobeSection() {
             ) : (
               <div className="flex flex-col gap-4">
                 {/* Quick guide */}
-                <div className="bg-white/3 border border-white/8 rounded-2xl p-5">
-                  <div className="text-white/40 text-xs uppercase tracking-widest mb-3">How to Use</div>
-                  <ul className="space-y-2 text-white/60 text-sm">
+                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                  <div className="text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+                    Mission Control Tips
+                  </div>
+                  <ul className="space-y-2.5 text-slate-300 text-xs">
                     <li className="flex items-center gap-2">
-                      <span className="text-blue-400">1.</span> Search for a satellite above
+                      <span className="w-5 h-5 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-[10px]">1</span>
+                      Search by satellite name, NORAD ID, or mission type
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-blue-400">2.</span> Select it to see its orbit
+                      <span className="w-5 h-5 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-[10px]">2</span>
+                      Click any satellite to project its real-time 3D orbit
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-blue-400">3.</span> Read the plain-English explanation
+                      <span className="w-5 h-5 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-[10px]">3</span>
+                      Ask ORBITLY AI to break down its physical mission
                     </li>
                   </ul>
                 </div>
@@ -298,27 +282,30 @@ function GlobeSection() {
 // ──────────────────────────────────────────────────
 function DataSources() {
   return (
-    <section className="py-20 px-6 border-t border-white/5">
+    <section className="py-20 px-6 border-t border-slate-800/80">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-10">
-          <div className="text-white/30 text-xs uppercase tracking-widest mb-2">Data Integrity</div>
-          <h3 className="text-white/70 text-xl font-medium">Real Sources, Not Fiction</h3>
+          <div className="text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-2">
+            Data Integrity & Scientific Sources
+          </div>
+          <h3 className="text-white text-2xl font-bold">100% Real Orbital Telemetry</h3>
+          <p className="text-slate-400 text-xs mt-1">Grounded in authoritative space surveillance and flight logs</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {[
-            { name: 'CelesTrak', desc: 'Two-Line Element sets for all tracked objects', url: 'https://celestrak.org', badge: 'Primary' },
-            { name: 'SGP4', desc: 'Industry-standard orbital propagation model', url: '#', badge: 'Algorithm' },
-            { name: 'Google Gemini', desc: 'AI explanations grounded in real data', url: 'https://aistudio.google.com', badge: 'AI Layer' },
-            { name: 'Launch Library 2', desc: 'Mission and launch data', url: 'https://thespacedevs.com', badge: 'Optional' },
-            { name: 'NORAD', desc: 'Satellite catalog IDs and object tracking', url: '#', badge: 'Standard' },
-            { name: 'Three.js / R3F', desc: '3D orbital visualization engine', url: 'https://threejs.org', badge: 'Renderer' },
+            { name: 'CelesTrak', desc: 'Two-Line Element sets updated multiple times daily', url: 'https://celestrak.org', badge: 'Primary TLE' },
+            { name: 'SGP4 / SDP4', desc: 'Simplified General Perturbations orbital mechanics propagator', url: '#', badge: 'Astrodynamics' },
+            { name: 'Google Gemini', desc: 'Synthesizes plain-English insights from raw numbers', url: 'https://aistudio.google.com', badge: 'AI Engine' },
+            { name: 'NASA & ESA', desc: 'Space science, orbital debris tracking, and mission archives', url: 'https://nasa.gov', badge: 'Scientific Reference' },
+            { name: 'US Space Command', desc: 'NORAD catalog identification and international tracking numbers', url: '#', badge: 'Catalog Standard' },
+            { name: 'Three.js / WebGL', desc: 'GPU-accelerated realistic Earth and satellite trajectory rendering', url: 'https://threejs.org', badge: 'Visualization' },
           ].map((s) => (
-            <div key={s.name} className="bg-white/3 border border-white/6 rounded-xl p-4">
+            <div key={s.name} className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-white font-medium text-sm">{s.name}</span>
-                <span className="text-white/30 text-xs font-mono">{s.badge}</span>
+                <span className="text-cyan-400/80 text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">{s.badge}</span>
               </div>
-              <p className="text-white/40 text-xs leading-relaxed">{s.desc}</p>
+              <p className="text-slate-400 text-xs leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -332,19 +319,19 @@ function DataSources() {
 // ──────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="py-10 px-6 border-t border-white/5">
-      <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="text-white/25 text-xs font-mono">
-          ORBITLY · Hackathon Prototype · Real data, real backend, real orbits
+    <footer className="py-10 px-6 border-t border-slate-800/80 bg-slate-950/80">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="text-slate-400 text-xs font-mono">
+          ORBITLY · Global Orbital Intelligence Platform · Real data, real physics, real orbits
         </div>
-        <div className="flex items-center gap-4 text-white/25 text-xs">
-          <a href="http://localhost:8000/api/docs" target="_blank" className="hover:text-white/50 transition-colors">
-            API Docs
+        <div className="flex items-center gap-6 text-slate-400 text-xs">
+          <a href="/api/docs" target="_blank" className="hover:text-cyan-400 transition-colors">
+            API Documentation
           </a>
-          <a href="http://localhost:8000/api/health" target="_blank" className="hover:text-white/50 transition-colors">
-            Health Check
+          <a href="/api/health" target="_blank" className="hover:text-cyan-400 transition-colors">
+            System Health
           </a>
-          <span>Built with FastAPI + Three.js</span>
+          <span className="text-slate-500">Built with FastAPI, Three.js & Tailwind</span>
         </div>
       </div>
     </footer>
@@ -356,9 +343,20 @@ function Footer() {
 // ──────────────────────────────────────────────────
 export default function App() {
   useFeaturedSatellites()
+  const { selectSatellite } = useSelectSatellite()
+  const { selectedSatellite } = useOrbitlyStore()
+
+  const handleSelectSatelliteFromConcept = (noradId: string) => {
+    selectSatellite(noradId)
+    // Smooth scroll up to 3D Globe
+    const el = document.getElementById('explore')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
 
   return (
-    <div className="relative min-h-screen bg-[#020408]">
+    <div className="relative min-h-screen bg-[#020408] text-slate-100 selection:bg-cyan-500 selection:text-slate-950">
       {/* Ambient effects */}
       <StarField />
       <GridOverlay />
@@ -367,15 +365,40 @@ export default function App() {
       <div className="scan-line" />
 
       {/* Ambient glow orbs */}
-      <div className="fixed top-1/4 -right-32 w-96 h-96 bg-blue-600/8 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed bottom-1/4 -left-32 w-96 h-96 bg-purple-600/6 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed top-1/4 -right-32 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-1/4 -left-32 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Content */}
-      <div className="relative z-10">
+      {/* Content Stack */}
+      <div className="relative z-10 space-y-12">
         <Nav />
         <Hero />
+
+        {/* 1. Live 3D Globe Orbit Explorer */}
         <GlobeSection />
-        <HowItWorks />
+
+        {/* 2. Live Rocket Launch Radar */}
+        <section id="launches" className="max-w-7xl mx-auto px-6 scroll-mt-20">
+          <LaunchTracker />
+        </section>
+
+        {/* 3. Space Concepts in Simple Language (Dual-Mode) */}
+        <section id="concepts" className="max-w-7xl mx-auto px-6 scroll-mt-20">
+          <ConceptVisualizer onSelectSatellite={handleSelectSatelliteFromConcept} />
+        </section>
+
+        {/* 4. Personalized Space Dashboard */}
+        <section id="dashboard" className="max-w-7xl mx-auto px-6 scroll-mt-20">
+          <PersonalizedDashboard />
+        </section>
+
+        {/* 5. Ask ORBITLY AI Space Assistant */}
+        <section id="assistant" className="max-w-7xl mx-auto px-6 scroll-mt-20">
+          <AskOrbitlyAssistant
+            currentSatelliteId={selectedSatellite?.satellite.id}
+            currentSatelliteName={selectedSatellite?.satellite.name}
+          />
+        </section>
+
         <DataSources />
         <Footer />
       </div>

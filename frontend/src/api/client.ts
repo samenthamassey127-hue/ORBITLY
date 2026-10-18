@@ -6,6 +6,11 @@ import type {
   SatellitePosition,
   OrbitPath,
   CatalogStats,
+  RocketLaunch,
+  SpaceConcept,
+  RoleDashboardData,
+  AssistantQuery,
+  AssistantResponse,
 } from '../types/satellite'
 
 const BASE_URL = import.meta.env.VITE_API_BASE || ''
@@ -67,3 +72,28 @@ export async function getHealth(): Promise<{
   const { data } = await api.get('/api/health')
   return data
 }
+
+// ── Extended Space Features ────────────────────
+
+export async function getLaunches(provider?: string, missionType?: string): Promise<RocketLaunch[]> {
+  const { data } = await api.get<RocketLaunch[]>('/api/launches', {
+    params: { provider, mission_type: missionType },
+  })
+  return data
+}
+
+export async function getConcepts(): Promise<SpaceConcept[]> {
+  const { data } = await api.get<SpaceConcept[]>('/api/concepts')
+  return data
+}
+
+export async function getDashboardRole(role: string): Promise<RoleDashboardData> {
+  const { data } = await api.get<RoleDashboardData>(`/api/dashboard/${role}`)
+  return data
+}
+
+export async function askAssistant(query: AssistantQuery): Promise<AssistantResponse> {
+  const { data } = await api.post<AssistantResponse>('/api/assistant/ask', query)
+  return data
+}
+

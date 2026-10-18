@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from config import settings
-from routers import health, search, satellites
+from routers import health, search, satellites, launches, concepts, dashboard, assistant
 from services.satellite_service import initialize_catalog
 
 # ──────────────────────────────────────────────
@@ -109,6 +109,10 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(search.router)
 app.include_router(satellites.router)
+app.include_router(launches.router)
+app.include_router(concepts.router)
+app.include_router(dashboard.router)
+app.include_router(assistant.router)
 
 
 # ──────────────────────────────────────────────
