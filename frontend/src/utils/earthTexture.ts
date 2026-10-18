@@ -190,37 +190,6 @@ export function createDottedEarthTexture(): THREE.CanvasTexture {
   ctx.stroke(path2d)
   ctx.setLineDash([])
 
-  // 6. Major Global City Constellations (Dense glowing hubs like the screenshot)
-  const majorCities: [number, number, number][] = [
-    // Europe
-    [0, 51, 6], [2, 48, 6], [13, 52, 5], [12, 41, 5], [-3, 40, 5], [37, 55, 6],
-    // North America
-    [-74, 40, 7], [-87, 41, 5], [-118, 34, 6], [-122, 37, 5], [-80, 25, 5], [-79, 43, 5],
-    // Asia
-    [139, 35, 7], [121, 31, 7], [116, 39, 6], [126, 37, 6], [77, 28, 7], [72, 19, 7],
-    [103, 1, 5], [100, 13, 5],
-    // Middle East
-    [55, 25, 6], [31, 30, 6], [44, 33, 5],
-    // Africa
-    [3, 6, 5], [18, -34, 5], [28, -26, 5], [36, -1, 5],
-    // South America
-    [-43, -22, 6], [-46, -23, 7], [-58, -34, 6], [-70, -33, 5], [-74, 4, 5],
-    // Australia
-    [151, -33, 6], [144, -37, 5], [115, -31, 4],
-  ]
-
-  for (const [lon, lat, size] of majorCities) {
-    const [cx, cy] = toCanvas(lon, lat)
-    const rad = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 2.5)
-    rad.addColorStop(0, 'rgba(255, 255, 255, 1.0)')
-    rad.addColorStop(0.3, 'rgba(125, 211, 252, 0.8)')
-    rad.addColorStop(1, 'rgba(56, 189, 248, 0)')
-    ctx.fillStyle = rad
-    ctx.beginPath()
-    ctx.arc(cx, cy, size * 2.5, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.wrapS = THREE.RepeatWrapping

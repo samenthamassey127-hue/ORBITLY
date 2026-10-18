@@ -226,13 +226,13 @@ function CameraController() {
   const targetPosRef = useRef<THREE.Vector3 | null>(null)
   const defaultPos = useMemo(() => new THREE.Vector3(0, 0, 3.4), [])
 
-  // When target changes, glide to a controlled vantage point (distance 2.35 from Earth)
-  // Earth is radius 1.0, so 2.35 keeps Earth nicely framed without zooming in too much
+  // When target changes, glide to face the satellite so the dot is centered (distance 3.1)
+  // Earth is radius 1.0, so 3.1 keeps the entire globe framed without zooming in too much
   useEffect(() => {
     if (cameraTarget) {
       const [lat, lon] = cameraTarget
       const dir = latLonAltToXYZ(lat, lon, 0).normalize()
-      targetPosRef.current = dir.multiplyScalar(2.35)
+      targetPosRef.current = dir.multiplyScalar(3.1)
     }
   }, [cameraTarget])
 
@@ -318,15 +318,15 @@ function Scene() {
 
       <CameraController />
 
-      {/* Orbit Controls with Clamped Zoom Limit (minDistance = 1.9 prevents zooming in too much) */}
+      {/* Orbit Controls with Safe Zoom Limits (minDistance = 2.5 prevents zooming in too much) */}
       <OrbitControls
         enablePan={false}
-        minDistance={1.9}
+        minDistance={2.5}
         maxDistance={5.5}
         enableDamping
         dampingFactor={0.06}
         rotateSpeed={0.6}
-        zoomSpeed={0.7}
+        zoomSpeed={0.6}
       />
     </>
   )
