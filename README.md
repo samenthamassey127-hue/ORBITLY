@@ -2,13 +2,33 @@
 
 > **Real satellite data. Real orbital mechanics. Human-understandable interpretations. Interactive 3D Earth.**
 
+[![Live Demo on Vercel](https://img.shields.io/badge/Live%20Demo-orbitly--wwex.vercel.app-blueviolet?style=for-the-badge&logo=vercel)](https://orbitly-wwex.vercel.app)
+[![Video Demo](https://img.shields.io/badge/Video%20Demo-Google%20Drive-orange?style=for-the-badge&logo=google-drive)](https://drive.google.com/drive/folders/1wmUhqc9AGiJoQIDYHSGmr_Cy2GMGuld4?usp=drive_link)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/samenthamassey127-hue/ORBITLY)
+
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18%2B-61DAFB?logo=react)](https://react.dev)
 [![Three.js](https://img.shields.io/badge/Three.js-R3F-black?logo=three.js)](https://threejs.org)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?logo=tailwindcss)](https://tailwindcss.com)
 
-**ORBITLY** bridges the gap between raw, complex aerospace telemetry and everyday human understanding. It continuously streams live orbital elements (TLEs) from official space feeds, runs real-time mathematical orbital propagation via **SGP4**, translates raw numbers into intuitive plain-English context, and renders active spacecraft around an interactive 3D Earth.
+---
+
+## 🌐 Live Deployments & Project Links
+
+| Resource | Link | Description |
+| :--- | :--- | :--- |
+| 🚀 **Live Production Platform** | **[https://orbitly-wwex.vercel.app](https://orbitly-wwex.vercel.app)** | Production deployment on Vercel with active backend API |
+| 🎬 **Video Demonstration** | **[Google Drive Video Folder](https://drive.google.com/drive/folders/1wmUhqc9AGiJoQIDYHSGmr_Cy2GMGuld4?usp=drive_link)** | Full video walkthrough with professional voiceover |
+| 💻 **Source Code Repository** | **[https://github.com/samenthamassey127-hue/ORBITLY](https://github.com/samenthamassey127-hue/ORBITLY)** | Official GitHub repository |
+
+---
+
+### 📝 Project Abstract
+
+**ORBITLY** is an end-to-end, real-time space intelligence platform engineered to bridge the divide between complex aerospace telemetry and everyday human understanding. While thousands of active satellites generate gigabytes of raw Two-Line Element (TLE) ephemeris data daily, existing tools trap this knowledge in military element sets and cluttered tabular databases. ORBITLY dismantles this barrier by ingesting live General Perturbations feeds from CelesTrak, executing mathematical orbital propagation via the industry-standard SGP4 model, and rendering spacecraft across an interactive, GPU-accelerated 3D dotted Earth at 60 FPS using Three.js and WebGL.
+
+The platform introduces a **Dual-Mode Space Concepts Engine**, allowing students and researchers to toggle seamlessly between intuitive plain-English metaphors (*Explain Like I'm 10*) and rigorous astrodynamics derivations with governing mathematical equations. Complementing this is a **Live Rocket Launch Radar** with active countdowns, **Personalized Dashboards** catering to stargazers, educators, and commercial satellite operators, and **Ask ORBITLY**—a conversational AI assistant grounded in verified orbital telemetry. By transforming dense orbital mechanics into accessible visualizations and gamified classroom challenges, ORBITLY democratizes space literacy for classrooms, amateur astronomers, and EdTech developers worldwide.
 
 ---
 
@@ -75,6 +95,8 @@ cd ORBITLY
 
 Open your browser to:
 👉 **`http://localhost:5173`**
+
+> 🚀 **Instant Access:** You can also test the live production platform directly at **[https://orbitly-wwex.vercel.app](https://orbitly-wwex.vercel.app)** without local setup!
 
 ---
 

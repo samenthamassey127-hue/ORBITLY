@@ -23,8 +23,7 @@ class Settings(BaseSettings):
     cors_origins: List[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://orbitly.vercel.app",
-        "https://orbitly.netlify.app",
+        "https://orbitly-wwex.vercel.app",
     ]
 
     # Server
