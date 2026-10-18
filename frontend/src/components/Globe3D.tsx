@@ -1,47 +1,12 @@
-import { useRef, useMemo, useEffect, useState } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Stars, Line, Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { RotateCcw, ZoomIn, Info, Sparkles, Compass } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 import { useOrbitlyStore } from '../store/orbitly'
 import { useSelectSatellite } from '../hooks/useSatellites'
 import type { OrbitPath } from '../types/satellite'
 import { createDottedEarthTexture } from '../utils/earthTexture'
-import { SatelliteCloseUpModal } from './SatelliteCloseUpModal'
-
-// ────────────────────────────────────────────────────────
-// Major World Cities Dataset (Revealed on Zoom)
-// ────────────────────────────────────────────────────────
-interface WorldCity {
-  name: string
-  country: string
-  lat: number
-  lon: number
-}
-
-const WORLD_CITIES: WorldCity[] = [
-  { name: 'Tokyo', country: 'Japan', lat: 35.68, lon: 139.76 },
-  { name: 'London', country: 'UK', lat: 51.50, lon: -0.12 },
-  { name: 'Paris', country: 'France', lat: 48.85, lon: 2.35 },
-  { name: 'New York', country: 'USA', lat: 40.71, lon: -74.00 },
-  { name: 'San Francisco', country: 'USA', lat: 37.77, lon: -122.41 },
-  { name: 'New Delhi', country: 'India', lat: 28.61, lon: 77.20 },
-  { name: 'Mumbai', country: 'India', lat: 19.07, lon: 72.87 },
-  { name: 'Beijing', country: 'China', lat: 39.90, lon: 116.40 },
-  { name: 'Shanghai', country: 'China', lat: 31.23, lon: 121.47 },
-  { name: 'Dubai', country: 'UAE', lat: 25.20, lon: 55.27 },
-  { name: 'Cairo', country: 'Egypt', lat: 30.04, lon: 31.23 },
-  { name: 'Sydney', country: 'Australia', lat: -33.86, lon: 151.20 },
-  { name: 'Singapore', country: 'Singapore', lat: 1.35, lon: 103.81 },
-  { name: 'Rio de Janeiro', country: 'Brazil', lat: -22.90, lon: -43.17 },
-  { name: 'Cape Town', country: 'South Africa', lat: -33.92, lon: 18.42 },
-  { name: 'Berlin', country: 'Germany', lat: 52.52, lon: 13.40 },
-  { name: 'Moscow', country: 'Russia', lat: 55.75, lon: 37.61 },
-  { name: 'Buenos Aires', country: 'Argentina', lat: -34.60, lon: -58.38 },
-  { name: 'Seoul', country: 'South Korea', lat: 37.56, lon: 126.97 },
-  { name: 'Toronto', country: 'Canada', lat: 43.65, lon: -79.38 },
-  { name: 'Nairobi', country: 'Kenya', lat: -1.29, lon: 36.82 },
-]
 
 // ────────────────────────────────────────────────────────
 // Convert lat/lon/alt to 3D XYZ position
@@ -71,8 +36,8 @@ function EarthMesh() {
   const dottedTexture = useMemo(() => createDottedEarthTexture(), [])
 
   useFrame((_, delta) => {
-    meshRef.current.rotation.y += delta * 0.025
-    if (atmosRef.current) atmosRef.current.rotation.y += delta * 0.028
+    meshRef.current.rotation.y += delta * 0.02
+    if (atmosRef.current) atmosRef.current.rotation.y += delta * 0.024
   })
 
   return (
@@ -83,7 +48,7 @@ function EarthMesh() {
         <meshPhongMaterial
           map={dottedTexture}
           emissive="#0c2340"
-          emissiveIntensity={0.5}
+          emissiveIntensity={0.55}
           specular="#38bdf8"
           shininess={35}
         />
@@ -139,42 +104,6 @@ function EarthMesh() {
 }
 
 // ────────────────────────────────────────────────────────
-// Cities Layer — Lights up when user zooms in
-// ────────────────────────────────────────────────────────
-function CitiesLayer({ zoomClose }: { zoomClose: boolean }) {
-  if (!zoomClose) return null
-
-  return (
-    <group>
-      {WORLD_CITIES.map((city) => {
-        const pos = latLonAltToXYZ(city.lat, city.lon, 0, 1.004)
-        return (
-          <group key={city.name} position={pos}>
-            {/* Glowing pin dot */}
-            <mesh>
-              <sphereGeometry args={[0.007, 8, 8]} />
-              <meshBasicMaterial color="#ffffff" />
-            </mesh>
-            <mesh>
-              <sphereGeometry args={[0.014, 8, 8]} />
-              <meshBasicMaterial color="#38bdf8" transparent opacity={0.4} />
-            </mesh>
-
-            {/* City Label */}
-            <Html distanceFactor={3.2} position={[0, 0.015, 0]} center>
-              <div className="pointer-events-none select-none px-1.5 py-0.5 rounded bg-slate-950/80 border border-cyan-500/40 text-[9px] font-mono text-cyan-200 backdrop-blur-sm whitespace-nowrap shadow-md">
-                <span className="font-bold text-white">{city.name}</span>
-                <span className="text-cyan-400/80 ml-1">({city.country})</span>
-              </div>
-            </Html>
-          </group>
-        )
-      })}
-    </group>
-  )
-}
-
-// ────────────────────────────────────────────────────────
 // Orbit Path Trace
 // ────────────────────────────────────────────────────────
 function OrbitLine({ orbitPath }: { orbitPath: OrbitPath }) {
@@ -207,7 +136,7 @@ function OrbitLine({ orbitPath }: { orbitPath: OrbitPath }) {
 }
 
 // ────────────────────────────────────────────────────────
-// Satellite Dot with Beacon & Close-Up Trigger
+// Satellite Dot with Beacon
 // ────────────────────────────────────────────────────────
 function SatelliteDot({
   lat,
@@ -277,7 +206,7 @@ function SatelliteDot({
               {name}
             </div>
             <div className="text-[9px] text-slate-300 font-mono">
-              {Math.round(altKm).toLocaleString()} km alt · Scroll in for photo
+              {Math.round(altKm).toLocaleString()} km altitude
             </div>
           </div>
         </Html>
@@ -287,29 +216,23 @@ function SatelliteDot({
 }
 
 // ────────────────────────────────────────────────────────
-// Camera Controller & Zoom Detection
+// Camera Controller with Controlled Zoom Limiting
 // ────────────────────────────────────────────────────────
-function CameraController({
-  onZoomChange,
-}: {
-  onZoomChange: (isClose: boolean) => void
-}) {
+function CameraController() {
   const { camera } = useThree()
   const cameraTarget = useOrbitlyStore((s) => s.cameraTarget)
   const resetCameraTrigger = useOrbitlyStore((s) => s.resetCameraTrigger)
-  const selectedSatellite = useOrbitlyStore((s) => s.selectedSatellite)
-  const setIsInspectModalOpen = useOrbitlyStore((s) => s.setIsInspectModalOpen)
-  const isInspectModalOpen = useOrbitlyStore((s) => s.isInspectModalOpen)
 
   const targetPosRef = useRef<THREE.Vector3 | null>(null)
   const defaultPos = useMemo(() => new THREE.Vector3(0, 0, 3.4), [])
 
-  // When target changes, calculate new camera position
+  // When target changes, glide to a controlled vantage point (distance 2.35 from Earth)
+  // Earth is radius 1.0, so 2.35 keeps Earth nicely framed without zooming in too much
   useEffect(() => {
     if (cameraTarget) {
-      const [lat, lon, altKm] = cameraTarget
-      const pos = latLonAltToXYZ(lat, lon, altKm + 1600)
-      targetPosRef.current = pos
+      const [lat, lon] = cameraTarget
+      const dir = latLonAltToXYZ(lat, lon, 0).normalize()
+      targetPosRef.current = dir.multiplyScalar(2.35)
     }
   }, [cameraTarget])
 
@@ -322,27 +245,10 @@ function CameraController({
 
   useFrame(() => {
     if (targetPosRef.current) {
-      camera.position.lerp(targetPosRef.current, 0.05)
+      camera.position.lerp(targetPosRef.current, 0.04)
       camera.lookAt(0, 0, 0)
-      if (camera.position.distanceTo(targetPosRef.current) < 0.05) {
+      if (camera.position.distanceTo(targetPosRef.current) < 0.04) {
         targetPosRef.current = null
-      }
-    }
-
-    // Measure zoom distance to Earth center
-    const distToCenter = camera.position.length()
-    const isZoomClose = distToCenter < 2.5
-    onZoomChange(isZoomClose)
-
-    // Measure proximity to selected satellite for automatic photo inspection
-    if (selectedSatellite?.satellite.derived?.latitude != null) {
-      const sat = selectedSatellite.satellite.derived
-      const satPos = latLonAltToXYZ(sat.latitude!, sat.longitude || 0, sat.altitude_km || 420)
-      const distToSat = camera.position.distanceTo(satPos)
-
-      // When the user scrolls in close to the satellite (< 0.75 distance)
-      if (distToSat < 0.75 && !isInspectModalOpen) {
-        setIsInspectModalOpen(true)
       }
     }
   })
@@ -353,15 +259,9 @@ function CameraController({
 // ────────────────────────────────────────────────────────
 // Scene Composition
 // ────────────────────────────────────────────────────────
-function Scene({ onZoomChange }: { onZoomChange: (close: boolean) => void }) {
-  const { selectedSatellite, selectedOrbitPath, featuredSatellites, setIsInspectModalOpen } = useOrbitlyStore()
+function Scene() {
+  const { selectedSatellite, selectedOrbitPath, featuredSatellites } = useOrbitlyStore()
   const { selectSatellite } = useSelectSatellite()
-  const [zoomClose, setZoomClose] = useState(false)
-
-  const handleZoomUpdate = (isClose: boolean) => {
-    setZoomClose(isClose)
-    onZoomChange(isClose)
-  }
 
   return (
     <>
@@ -383,9 +283,6 @@ function Scene({ onZoomChange }: { onZoomChange: (close: boolean) => void }) {
       {/* Exact Match Dotted Earth */}
       <EarthMesh />
 
-      {/* Cities Layer (visible on zoom) */}
-      <CitiesLayer zoomClose={zoomClose} />
-
       {/* Selected Orbit Line */}
       {selectedOrbitPath && <OrbitLine orbitPath={selectedOrbitPath} />}
 
@@ -397,7 +294,6 @@ function Scene({ onZoomChange }: { onZoomChange: (close: boolean) => void }) {
           altKm={selectedSatellite.satellite.derived.altitude_km || 420}
           selected={true}
           name={selectedSatellite.satellite.name}
-          onClick={() => setIsInspectModalOpen(true)}
         />
       )}
 
@@ -420,16 +316,17 @@ function Scene({ onZoomChange }: { onZoomChange: (close: boolean) => void }) {
         )
       })}
 
-      <CameraController onZoomChange={handleZoomUpdate} />
+      <CameraController />
 
+      {/* Orbit Controls with Clamped Zoom Limit (minDistance = 1.9 prevents zooming in too much) */}
       <OrbitControls
         enablePan={false}
-        minDistance={1.3}
-        maxDistance={7}
+        minDistance={1.9}
+        maxDistance={5.5}
         enableDamping
         dampingFactor={0.06}
         rotateSpeed={0.6}
-        zoomSpeed={0.8}
+        zoomSpeed={0.7}
       />
     </>
   )
@@ -439,24 +336,7 @@ function Scene({ onZoomChange }: { onZoomChange: (close: boolean) => void }) {
 // Globe3D Main Component
 // ────────────────────────────────────────────────────────
 export function Globe3D() {
-  const {
-    selectedSatellite,
-    clearSelection,
-    isInspectModalOpen,
-    setIsInspectModalOpen,
-    setCameraTarget,
-  } = useOrbitlyStore()
-
-  const [isZoomClose, setIsZoomClose] = useState(false)
-
-  // Zoom directly to satellite
-  const handleZoomToSatellite = () => {
-    if (selectedSatellite?.satellite.derived?.latitude != null) {
-      const der = selectedSatellite.satellite.derived
-      setCameraTarget([der.latitude!, der.longitude || 0, der.altitude_km || 420])
-      setIsInspectModalOpen(true)
-    }
-  }
+  const { selectedSatellite, clearSelection } = useOrbitlyStore()
 
   return (
     <div className="w-full h-full relative select-none">
@@ -467,53 +347,33 @@ export function Globe3D() {
         dpr={[1, 2]}
         style={{ background: 'transparent' }}
       >
-        <Scene onZoomChange={setIsZoomClose} />
+        <Scene />
       </Canvas>
-
-      {/* Close-Up Satellite Photo & Inspection Modal */}
-      {isInspectModalOpen && selectedSatellite && <SatelliteCloseUpModal />}
 
       {/* Top Floating Controls Bar */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         {selectedSatellite && (
-          <>
-            {/* Zoom to Satellite / Photo view button */}
-            <button
-              onClick={handleZoomToSatellite}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 border border-cyan-500/30 text-xs font-semibold backdrop-blur-md transition shadow-lg"
-              title="Zoom into satellite and inspect photo"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-              <span>Inspect Photo</span>
-            </button>
-
-            {/* Reset Button */}
-            <button
-              onClick={clearSelection}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 hover:border-cyan-500/50 text-xs font-semibold backdrop-blur-md transition shadow-lg"
-              title="Reset view and deselect satellite"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Reset View</span>
-            </button>
-          </>
+          <button
+            onClick={clearSelection}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 hover:border-cyan-500/50 text-xs font-semibold backdrop-blur-md transition shadow-lg"
+            title="Reset view and return to full Earth orbit"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Reset View</span>
+          </button>
         )}
       </div>
 
-      {/* Bottom Center Indicator (Matching the reference aesthetic) */}
+      {/* Bottom Center Indicator */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-none">
         <div className="px-4 py-1.5 rounded-full bg-slate-950/80 border border-slate-800/80 text-[11px] font-mono text-slate-300 backdrop-blur-md flex items-center gap-2 shadow-xl">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
           {selectedSatellite ? (
             <span>
-              Tracking: <strong className="text-cyan-300">{selectedSatellite.satellite.name}</strong> · Scroll in to view spacecraft image
+              Tracking: <strong className="text-cyan-300">{selectedSatellite.satellite.name}</strong> · See telemetry & image in panel
             </span>
           ) : (
-            <span>
-              {isZoomClose
-                ? '🔍 Zoomed In · Cities & Terrestrial Nodes Active'
-                : 'Scroll to Zoom · Select any satellite beacon to inspect'}
-            </span>
+            <span>Select any satellite beacon to inspect orbit & spacecraft photo</span>
           )}
         </div>
       </div>

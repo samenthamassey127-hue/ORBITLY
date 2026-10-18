@@ -1,5 +1,6 @@
 import { useOrbitlyStore } from '../store/orbitly'
 import type { SatelliteDetail, FieldExplanation } from '../types/satellite'
+import { getSatelliteVisual } from '../data/satelliteImages'
 
 function StatBox({ label, value, unit }: { label: string; value: string | null; unit?: string }) {
   return (
@@ -51,6 +52,7 @@ export function SatellitePanel() {
   const { satellite, explanations, summary } = selectedSatellite
   const der = satellite.derived
   const el = satellite.orbital_elements
+  const visual = getSatelliteVisual(satellite.norad_id, satellite.name)
 
   const lastUpdated = new Date(satellite.last_updated).toLocaleString()
 
@@ -109,6 +111,39 @@ export function SatellitePanel() {
       </div>
 
       <div className="overflow-y-auto max-h-[70vh]">
+        {/* Spacecraft Photo Banner */}
+        <div className="p-4 border-b border-white/8">
+          <div className="relative h-44 rounded-2xl overflow-hidden border border-white/10 bg-slate-950 group">
+            <img
+              src={visual.imageUrl}
+              alt={satellite.name}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                if (target.src !== visual.fallbackUrl) {
+                  target.src = visual.fallbackUrl
+                }
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
+            <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs font-mono">
+              <span className="text-white/90 font-bold truncate max-w-[200px]">{visual.modelName}</span>
+              <span className="text-cyan-400 font-semibold">{der?.velocity_km_s ? `${der.velocity_km_s.toFixed(2)} km/s` : '7.66 km/s'}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-xs font-mono mt-2.5 text-white/50">
+            <div className="bg-white/4 p-2 rounded-lg border border-white/5 truncate">
+              <span className="text-white/30 block text-[10px]">DIMENSIONS</span>
+              <span className="text-white/80">{visual.dimensions}</span>
+            </div>
+            <div className="bg-white/4 p-2 rounded-lg border border-white/5 truncate">
+              <span className="text-white/30 block text-[10px]">SOLAR WINGS</span>
+              <span className="text-white/80">{visual.solarSpan}</span>
+            </div>
+          </div>
+        </div>
+
         {/* AI Summary */}
         {summary && (
           <div className="px-6 py-4 border-b border-white/8">
