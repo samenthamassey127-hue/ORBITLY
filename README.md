@@ -1,160 +1,199 @@
-# 🛰️ ORBITLY
+# 🛰️ ORBITLY — Real-Time Space Intelligence Platform
 
-> Real satellite data. Real orbital math. Human-readable explanations. Interactive 3D Earth.
+> **Real satellite data. Real orbital mechanics. Human-understandable interpretations. Interactive 3D Earth.**
 
-**Not a mockup.** ORBITLY is a full-stack prototype that pulls live TLE data from CelesTrak, propagates satellite positions using SGP4 orbital mechanics, translates technical orbital parameters into plain English using Gemini AI, and visualizes everything on an interactive 3D Earth built with Three.js.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18%2B-61DAFB?logo=react)](https://react.dev)
+[![Three.js](https://img.shields.io/badge/Three.js-R3F-black?logo=three.js)](https://threejs.org)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?logo=tailwindcss)](https://tailwindcss.com)
 
----
-
-## The Data Pipeline
-
-```
-CelesTrak (live TLE feeds)
-         ↓
-Python FastAPI backend (normalizes & validates)
-         ↓
-SGP4 orbital propagation (real-time positions)
-         ↓
-Gemini AI / deterministic explanations
-         ↓
-React frontend → Three.js 3D Earth
-         ↓
-You, understanding what "51.6° inclination" actually means
-```
+**ORBITLY** bridges the gap between raw, complex aerospace telemetry and everyday human understanding. It continuously streams live orbital elements (TLEs) from official space feeds, runs real-time mathematical orbital propagation via **SGP4**, translates raw numbers into intuitive plain-English context, and renders active spacecraft around an interactive 3D Earth.
 
 ---
 
-## Quick Start
+## ⚡ The Data Pipeline
+
+```
+       CelesTrak GP Query API (Real TLE / OMM Data)
+                           ↓
+     FastAPI Backend (Python · Normalization & Validation)
+                           ↓
+        SGP4 Orbital Mechanics (True Lat/Lon/Alt/Velocity)
+                           ↓
+   Intelligent Interpretation Layer (Gemini AI + Aerospace Physics)
+                           ↓
+  Interactive 3D Earth Experience (Three.js · R3F · Orbit Trajectories)
+                           ↓
+     User / Student / Hobbyist (Plain-English Human Understanding)
+```
+
+---
+
+## 🚀 Quick Start (Single Command)
 
 ### Prerequisites
-- Python 3.10+
-- Node.js 18+
-- Git
+- **Python 3.10+**
+- **Node.js 18+** & npm
+- **Git**
 
-### 1. Clone
+### 1. Clone & Enter
 ```bash
-git clone https://github.com/samenthamassey127-hue/ORBITLY
+git clone https://github.com/samenthamassey127-hue/ORBITLY.git
 cd ORBITLY
 ```
 
-### 2. Backend Setup
-```bash
-cd backend
-pip install fastapi uvicorn httpx cachetools sgp4 python-dotenv pydantic-settings google-generativeai
-cp ../.env.example .env
-# Edit .env — at minimum add GEMINI_API_KEY (optional but recommended)
-python main.py
-```
-Backend runs at: http://localhost:8000
-API docs at: http://localhost:8000/api/docs
+### 2. Run Entire Prototype (Backend + Frontend)
 
-### 3. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Frontend runs at: http://localhost:5173
+#### Option A: Using the Launcher Script (Easiest)
+- **On Git Bash / Linux / macOS:**
+  ```bash
+  ./start.sh
+  ```
+- **On Windows (Command Prompt / PowerShell):**
+  Double-click `start.bat` or run:
+  ```cmd
+  start.bat
+  ```
 
----
+#### Option B: Manual Two-Terminal Run
+- **Terminal 1 — Python Backend:**
+  ```bash
+  cd backend
+  pip install -r requirements.txt
+  PYTHONUTF8=1 python main.py
+  ```
+  *(Backend runs on http://localhost:8000 · Swagger Docs at http://localhost:8000/api/docs)*
 
-## Environment Variables
+- **Terminal 2 — React Frontend:**
+  ```bash
+  cd frontend
+  npm install
+  npm run dev
+  ```
+  *(Frontend runs on http://localhost:5173)*
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `GEMINI_API_KEY` | Optional | `""` | Google Gemini key for AI explanations |
-| `CELESTRAK_BASE` | No | `https://celestrak.org` | CelesTrak base URL |
-| `CACHE_TTL_SECONDS` | No | `900` | Cache refresh interval (15 min) |
-| `PORT` | No | `8000` | Backend server port |
-
-Get a Gemini key free at https://aistudio.google.com
-
----
-
-## API Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/health` | System health + cache status |
-| `GET /api/satellites/featured` | Notable satellites from live catalog |
-| `GET /api/satellites/{id}` | Full satellite detail + AI explanation |
-| `GET /api/satellites/{id}/position` | Real-time SGP4 position |
-| `GET /api/satellites/{id}/orbit` | Full orbit path for 3D visualization |
-| `GET /api/search?q={query}` | Full-text satellite search |
+Open your browser to:
+👉 **`http://localhost:5173`**
 
 ---
 
-## Architecture
+## 🌟 Key Features
+
+### 1. 100% Genuine Space Data (No Hardcoded Numbers)
+- **Live CelesTrak Feeds**: Directly queries CelesTrak's General Perturbations (GP) API across multiple satellite categories:
+  - Space Stations (ISS, Tiangong CSS, Shenzhou modules)
+  - 100+ Brightest Visual Satellites (Hubble Space Telescope, Envisat, Genesis)
+  - Earth Observation & Weather (NOAA, GOES, Meteosat)
+  - Astrophysics & Science Missions
+- **Live Query Search**: Real-time fallback queries CelesTrak on the fly for any arbitrary name or NORAD catalog number (e.g. `Starlink`, `20580`).
+
+### 2. High-Precision Orbital Physics (SGP4)
+- Local calculation of satellite state vectors using **SGP4** (`sgp4.api.Satrec`).
+- Calculates sub-satellite geodetic coordinates (latitude, longitude, altitude in km).
+- Real velocity vectors ($\approx 7.66\text{ km/s}$ in Low Earth Orbit).
+- Apogee, perigee, inclination, and orbital period (minutes per revolution).
+- Keplerian orbit type classification: **LEO**, **MEO**, **GEO**, **HEO**.
+
+### 3. "What This Means" — Intelligent Translation Layer
+Translates dense aerospace parameters into tangible human concepts:
+- **Inclination ($51.63^\circ$)**: *"The satellite's orbit is tilted 51.6° from the equator, allowing it to pass over areas where over 90% of the world's population lives."*
+- **Orbital Speed ($7.66\text{ km/s}$)**: *"Travels at roughly 17,100 mph (27,600 km/h) — 22× faster than a speeding bullet!"*
+- **Orbital Period ($92.98\text{ min}$)**: *"Completes an entire lap of Earth in ~93 minutes, giving astronauts 16 sunrises and sunsets every single day."*
+- **AI Summary**: Powered by Google Gemini (`google-genai` SDK) with automatic deterministic fallback if no API key is provided.
+
+### 4. Interactive 3D Earth Experience
+- Built with **Three.js** and **React Three Fiber**.
+- Specular ocean reflections, atmospheric haze glow, and subtle celestial coordinate grid lines.
+- Deep space field with 9,000+ stars.
+- Real-time 3D orbit trajectory ribbons wrapping the globe.
+- Pulsing radar beacon markers for satellites with 3D HTML telemetry HUD tags.
+- Smooth camera flight controller that tracks and frames selected spacecraft.
+
+---
+
+## 📡 API Endpoints
+
+The FastAPI backend exposes the following endpoints (documented interactively at `/api/docs`):
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/health` | `GET` | Health check, catalog size, cache freshness |
+| `/api/satellites/featured` | `GET` | Curated prominent satellites from live feed |
+| `/api/satellites/{id}` | `GET` | Full telemetry, orbital elements, and plain-English translation |
+| `/api/satellites/{id}/position` | `GET` | Real-time SGP4 coordinates (lat/lon/alt/velocity) |
+| `/api/satellites/{id}/orbit` | `GET` | 360-degree orbit path coordinates for 3D rendering |
+| `/api/satellites/stats` | `GET` | Overall catalog breakdown (LEO, GEO, payloads) |
+| `/api/search?q={query}` | `GET` | Full-text and NORAD ID satellite search |
+
+---
+
+## 🏗️ Project Architecture
 
 ```
 ORBITLY/
-├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── config.py            # Environment configuration
-│   ├── models/satellite.py  # Normalized data models (Pydantic)
+├── start.sh                 # Single-command launcher for Linux / Mac / Git Bash
+├── start.bat                # Single-command launcher for Windows CMD / PowerShell
+├── .env.example             # Sample environment variables
+├── README.md                # Documentation & architecture guide
+│
+├── backend/                 # Python FastAPI Application
+│   ├── main.py              # Application entry point & lifespan refresh
+│   ├── config.py            # Pydantic Settings & environment config
+│   ├── requirements.txt     # Pinned Python dependencies
+│   ├── models/
+│   │   └── satellite.py     # Normalized Pydantic models & validation
 │   ├── providers/
 │   │   ├── base.py          # Abstract provider interface
-│   │   ├── celestrak.py     # CelesTrak TLE provider
-│   │   └── launch_library.py
+│   │   ├── celestrak.py     # CelesTrak GP query TLE provider
+│   │   └── launch_library.py# Launch Library 2 provider
 │   ├── services/
-│   │   ├── satellite_service.py   # Business logic
-│   │   ├── orbital_service.py     # SGP4 propagation
-│   │   ├── cache_service.py       # TTL cache + disk fallback
-│   │   └── explanation_service.py # AI + deterministic explanations
+│   │   ├── satellite_service.py   # Catalog indexing & search
+│   │   ├── orbital_service.py     # SGP4 propagation & orbit trajectory
+│   │   ├── cache_service.py       # In-memory TTL + disk JSON caching
+│   │   └── explanation_service.py # Gemini AI & deterministic translation
 │   └── routers/
-│       ├── health.py
-│       ├── search.py
-│       └── satellites.py
-└── frontend/
+│       ├── health.py        # System health & telemetry stats
+│       ├── satellites.py    # Satellite details, orbits, positions
+│       └── search.py        # Full-text search endpoint
+│
+└── frontend/                # React 18 + Vite + TypeScript Application
+    ├── index.html           # HTML entry point with space typography
+    ├── vite.config.ts       # Vite proxy to port 8000 & chunk splitting
+    ├── tailwind.config.ts   # Aerospace palette & radar scan animations
     └── src/
+        ├── App.tsx          # Single-scroll continuous product experience
         ├── components/
-        │   ├── Globe3D.tsx        # Three.js interactive Earth
-        │   ├── SearchBar.tsx      # Real search with debounce
-        │   ├── SatellitePanel.tsx # Data + explanation panel
-        │   ├── FeaturedSatellites.tsx
-        │   └── StatsBar.tsx
-        ├── api/client.ts          # Typed Axios API client
-        ├── store/orbitly.ts       # Zustand global state
-        └── hooks/useSatellites.ts # Data fetching hooks
+        │   ├── Globe3D.tsx            # Three.js 3D Earth & orbit lines
+        │   ├── SearchBar.tsx          # Debounced search & quick explore pills
+        │   ├── SatellitePanel.tsx     # Mission control telemetry HUD & AI summary
+        │   ├── FeaturedSatellites.tsx # Live catalog card list
+        │   └── StatsBar.tsx           # Real-time satellite counters
+        ├── api/client.ts              # Typed Axios API client
+        └── store/orbitly.ts           # Zustand global state management
 ```
 
 ---
 
-## Data Sources
+## ⚙️ Environment Variables
 
-| Source | Data | Refresh |
-|--------|------|---------|
-| CelesTrak | Live TLE data for all tracked objects | Every 15 min |
-| SGP4 (local) | Real-time orbital propagation | Per-request |
-| Google Gemini | Plain-English explanations | Per-request |
+Optional configuration can be placed in a `.env` file in the `backend/` directory:
 
-Data is **always real**. No hardcoded satellites. No fake numbers.
-The app gracefully falls back to cached data if an API is unavailable.
-
----
-
-## Tech Stack
-
-**Backend**: Python · FastAPI · Pydantic v2 · sgp4 · httpx · cachetools · Google Gemini
-
-**Frontend**: React 18 · TypeScript · Vite · Three.js · React Three Fiber · Tailwind CSS · Zustand · Axios
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `GEMINI_API_KEY` | `""` | Google Gemini key for dynamic AI explanations *(optional)* |
+| `CELESTRAK_BASE` | `https://celestrak.org` | CelesTrak base API URL |
+| `CACHE_TTL_SECONDS`| `900` | TLE cache duration (15 minutes) |
+| `PORT` | `8000` | Backend port |
+| `HOST` | `0.0.0.0` | Backend bind host |
 
 ---
 
-## Hackathon Notes
+## 🛠️ Tech Stack
 
-What's real:
-- ✅ Live TLE data from CelesTrak
-- ✅ SGP4 orbital math (not fake animation)
-- ✅ Real search across live catalog
-- ✅ AI explanations from Gemini (deterministic fallback if no key)
-- ✅ Orbit path computed from actual TLE
-- ✅ Cache with disk fallback for resilience
-- ✅ Background catalog refresh
+- **Backend**: Python 3.10+, FastAPI, Pydantic v2, SGP4, HTTPX, Cachetools, Google GenAI SDK.
+- **Frontend**: React 18, TypeScript, Vite, Three.js, React Three Fiber, React Three Drei, Tailwind CSS v4, Zustand, Axios.
 
-What's prototype-level:
-- Position dots on globe show derived lat/lon (from TLE epoch, refreshed periodically)
-- Launch data from Launch Library 2 not yet integrated (provider written, not wired)
-- No user accounts or saved satellites
+---
 
-Built for the hackathon by Team ORBITLY 🛰️
+Built with ❤️ for space enthusiasts, students, and engineers.
