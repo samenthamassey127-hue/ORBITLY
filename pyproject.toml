@@ -1,0 +1,16 @@
+[project]
+name = "orbitly"
+version = "1.0.0"
+description = "ORBITLY - Real-time space intelligence platform"
+requires-python = ">=3.11, <=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "httpx>=0.27.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "cachetools>=5.5.0",
+    "sgp4>=2.23",
+    "python-dotenv>=1.0.0",
+    "google-generativeai>=0.8.0",
+]
