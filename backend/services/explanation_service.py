@@ -187,58 +187,25 @@ def build_summary_deterministic(satellite: SatelliteModel) -> str:
 
 
 # ──────────────────────────────────────────────
-# Gemini AI layer (optional enhancement)
+# Gemini AI layer (via standard HTTP REST API)
+# ponytail: direct httpx call eliminates 40MB of grpcio/google-api-python-client dependency bloat
 # ──────────────────────────────────────────────
-
-_gemini_client = None
-
-def _get_gemini_client():
-    global _gemini_client
-    if _gemini_client is not None:
-        return _gemini_client
-    try:
-        from google import genai
-        from config import settings
-        if not settings.gemini_api_key:
-            return None
-        _gemini_client = genai.Client(api_key=settings.gemini_api_key)
-        logger.info("[ExplanationService] Gemini client (google-genai SDK) initialized")
-        return _gemini_client
-    except ImportError:
-        try:
-            import google.generativeai as genai
-            from config import settings
-            if not settings.gemini_api_key:
-                return None
-            genai.configure(api_key=settings.gemini_api_key)
-            _gemini_client = genai.GenerativeModel("gemini-2.0-flash-lite")
-            logger.info("[ExplanationService] Gemini model (legacy SDK) initialized")
-            return _gemini_client
-        except Exception as e:
-            logger.warning(f"[ExplanationService] Gemini init failed: {e}")
-            return None
-    except Exception as e:
-        logger.warning(f"[ExplanationService] Gemini init failed: {e}")
-        return None
-
-
 async def get_ai_summary(satellite: SatelliteModel, deterministic_summary: str) -> str:
     """
     Use Gemini to generate a richer, more engaging summary.
-    Falls back to deterministic summary if Gemini is unavailable.
+    Uses native REST API via httpx to avoid heavy SDK dependencies.
+    Falls back to deterministic summary if key is missing or call fails.
     """
-    client = _get_gemini_client()
-    if not client:
+    from config import settings
+    if not settings.gemini_api_key:
         return deterministic_summary
 
     el = satellite.orbital_elements
     der = satellite.derived
 
     prompt = f"""You are an expert space data interpreter for ORBITLY, a platform that makes space data understandable.
-
 Given this real satellite data, write a 2-3 sentence summary that a curious student or enthusiast would find fascinating.
-Be specific, use the actual numbers, and explain what they mean in everyday terms.
-Do NOT invent facts. Only use the data provided.
+Be specific, use the actual numbers, and explain what they mean in everyday terms. Do NOT invent facts.
 
 Satellite: {satellite.name}
 NORAD ID: {satellite.norad_id}
@@ -247,29 +214,24 @@ Orbit Type: {der.orbit_type if der else 'Unknown'}
 Altitude: {f"{der.altitude_km:.0f} km" if der and der.altitude_km else 'Unknown'}
 Period: {f"{der.period_minutes:.1f} minutes" if der and der.period_minutes else 'Unknown'}
 Inclination: {f"{el.inclination_deg:.2f}°" if el and el.inclination_deg else 'Unknown'}
-Eccentricity: {f"{el.eccentricity:.5f}" if el and el.eccentricity else 'Unknown'}
 Velocity: {f"{der.velocity_km_s:.2f} km/s" if der and der.velocity_km_s else 'Unknown'}
-Country: {satellite.country or 'Unknown'}
-Status: {satellite.operational_status or 'Unknown'}
 
-Write only the summary. No headers, no bullet points. 2-3 sentences max."""
+Write only the summary. No headers. 2-3 sentences max."""
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.gemini_api_key}"
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
     try:
-        # Try new google-genai SDK first
-        from google import genai
-        response = await client.aio.models.generate_content(
-            model="gemini-2.0-flash-lite",
-            contents=prompt,
-        )
-        return response.text.strip()
-    except Exception:
-        try:
-            # Fallback to legacy SDK
-            response = await client.generate_content_async(prompt)
-            return response.text.strip()
-        except Exception as e:
-            logger.warning(f"[ExplanationService] Gemini generation failed: {e}")
-            return deterministic_summary
+        import httpx
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            resp = await client.post(url, json=payload)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except Exception as e:
+        logger.warning(f"[ExplanationService] Gemini REST call failed: {e}")
+
+    return deterministic_summary
 
 
 async def explain_satellite(satellite: SatelliteModel) -> tuple[list[FieldExplanation], str]:
