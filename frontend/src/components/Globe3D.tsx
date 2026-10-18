@@ -1,87 +1,47 @@
-import { useRef, useMemo, useEffect } from 'react'
+import { useRef, useMemo, useEffect, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Stars, Line, Html } from '@react-three/drei'
 import * as THREE from 'three'
+import { RotateCcw, ZoomIn, Info, Sparkles, Compass } from 'lucide-react'
 import { useOrbitlyStore } from '../store/orbitly'
 import { useSelectSatellite } from '../hooks/useSatellites'
 import type { OrbitPath } from '../types/satellite'
+import { createDottedEarthTexture } from '../utils/earthTexture'
+import { SatelliteCloseUpModal } from './SatelliteCloseUpModal'
 
 // ────────────────────────────────────────────────────────
-// Earth mesh — interactive 3D planet with atmosphere
+// Major World Cities Dataset (Revealed on Zoom)
 // ────────────────────────────────────────────────────────
-function EarthMesh() {
-  const meshRef = useRef<THREE.Mesh>(null!)
-  const cloudsRef = useRef<THREE.Mesh>(null!)
-  const atmosRef = useRef<THREE.Mesh>(null!)
-
-  useFrame((_, delta) => {
-    meshRef.current.rotation.y += delta * 0.03
-    if (cloudsRef.current) cloudsRef.current.rotation.y += delta * 0.038
-    if (atmosRef.current) atmosRef.current.rotation.y += delta * 0.032
-  })
-
-  return (
-    <group>
-      {/* Ocean body */}
-      <mesh ref={meshRef} castShadow receiveShadow>
-        <sphereGeometry args={[1, 64, 64]} />
-        <meshPhongMaterial
-          color="#0c2548"
-          emissive="#030b18"
-          emissiveIntensity={0.3}
-          specular="#3888d8"
-          shininess={45}
-        />
-      </mesh>
-
-      {/* Lat/Long orbital grid layer */}
-      <mesh rotation={[0, 0, 0]}>
-        <sphereGeometry args={[1.002, 36, 18]} />
-        <meshBasicMaterial
-          color="#3b82f6"
-          wireframe={true}
-          transparent
-          opacity={0.06}
-        />
-      </mesh>
-
-      {/* Cloud & land subtle glow layer */}
-      <mesh ref={cloudsRef}>
-        <sphereGeometry args={[1.008, 48, 48]} />
-        <meshStandardMaterial
-          color="#60a5fa"
-          transparent
-          opacity={0.08}
-          roughness={0.9}
-        />
-      </mesh>
-
-      {/* Atmosphere glow */}
-      <mesh ref={atmosRef}>
-        <sphereGeometry args={[1.06, 32, 32]} />
-        <meshPhongMaterial
-          color="#38bdf8"
-          transparent
-          opacity={0.12}
-          side={THREE.BackSide}
-          depthWrite={false}
-        />
-      </mesh>
-
-      {/* Outer thermosphere haze */}
-      <mesh>
-        <sphereGeometry args={[1.14, 32, 32]} />
-        <meshBasicMaterial
-          color="#1e40af"
-          transparent
-          opacity={0.05}
-          side={THREE.BackSide}
-          depthWrite={false}
-        />
-      </mesh>
-    </group>
-  )
+interface WorldCity {
+  name: string
+  country: string
+  lat: number
+  lon: number
 }
+
+const WORLD_CITIES: WorldCity[] = [
+  { name: 'Tokyo', country: 'Japan', lat: 35.68, lon: 139.76 },
+  { name: 'London', country: 'UK', lat: 51.50, lon: -0.12 },
+  { name: 'Paris', country: 'France', lat: 48.85, lon: 2.35 },
+  { name: 'New York', country: 'USA', lat: 40.71, lon: -74.00 },
+  { name: 'San Francisco', country: 'USA', lat: 37.77, lon: -122.41 },
+  { name: 'New Delhi', country: 'India', lat: 28.61, lon: 77.20 },
+  { name: 'Mumbai', country: 'India', lat: 19.07, lon: 72.87 },
+  { name: 'Beijing', country: 'China', lat: 39.90, lon: 116.40 },
+  { name: 'Shanghai', country: 'China', lat: 31.23, lon: 121.47 },
+  { name: 'Dubai', country: 'UAE', lat: 25.20, lon: 55.27 },
+  { name: 'Cairo', country: 'Egypt', lat: 30.04, lon: 31.23 },
+  { name: 'Sydney', country: 'Australia', lat: -33.86, lon: 151.20 },
+  { name: 'Singapore', country: 'Singapore', lat: 1.35, lon: 103.81 },
+  { name: 'Rio de Janeiro', country: 'Brazil', lat: -22.90, lon: -43.17 },
+  { name: 'Cape Town', country: 'South Africa', lat: -33.92, lon: 18.42 },
+  { name: 'Berlin', country: 'Germany', lat: 52.52, lon: 13.40 },
+  { name: 'Moscow', country: 'Russia', lat: 55.75, lon: 37.61 },
+  { name: 'Buenos Aires', country: 'Argentina', lat: -34.60, lon: -58.38 },
+  { name: 'Seoul', country: 'South Korea', lat: 37.56, lon: 126.97 },
+  { name: 'Toronto', country: 'Canada', lat: 43.65, lon: -79.38 },
+  { name: 'Nairobi', country: 'Kenya', lat: -1.29, lon: 36.82 },
+]
 
 // ────────────────────────────────────────────────────────
 // Convert lat/lon/alt to 3D XYZ position
@@ -101,7 +61,121 @@ function latLonAltToXYZ(lat: number, lon: number, altKm: number, earthRadiusUnit
 }
 
 // ────────────────────────────────────────────────────────
-// Orbit path line
+// Dotted Earth Mesh — Exact match to the reference image
+// ────────────────────────────────────────────────────────
+function EarthMesh() {
+  const meshRef = useRef<THREE.Mesh>(null!)
+  const atmosRef = useRef<THREE.Mesh>(null!)
+
+  // Generate the glowing dotted texture once
+  const dottedTexture = useMemo(() => createDottedEarthTexture(), [])
+
+  useFrame((_, delta) => {
+    meshRef.current.rotation.y += delta * 0.025
+    if (atmosRef.current) atmosRef.current.rotation.y += delta * 0.028
+  })
+
+  return (
+    <group>
+      {/* 1. Base Dotted Earth Sphere */}
+      <mesh ref={meshRef} castShadow receiveShadow>
+        <sphereGeometry args={[1, 64, 64]} />
+        <meshPhongMaterial
+          map={dottedTexture}
+          emissive="#0c2340"
+          emissiveIntensity={0.5}
+          specular="#38bdf8"
+          shininess={35}
+        />
+      </mesh>
+
+      {/* 2. Concentric Coordinate Wireframe Grid */}
+      <mesh rotation={[0, 0, 0]}>
+        <sphereGeometry args={[1.003, 36, 18]} />
+        <meshBasicMaterial
+          color="#38bdf8"
+          wireframe={true}
+          transparent
+          opacity={0.08}
+        />
+      </mesh>
+
+      {/* 3. Luminous Equatorial Ring */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.004, 1.008, 64]} />
+        <meshBasicMaterial
+          color="#38bdf8"
+          transparent
+          opacity={0.25}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* 4. Atmospheric Rim Halo (BackSide Fresnel Glow) */}
+      <mesh ref={atmosRef}>
+        <sphereGeometry args={[1.055, 48, 48]} />
+        <meshPhongMaterial
+          color="#38bdf8"
+          transparent
+          opacity={0.18}
+          side={THREE.BackSide}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* 5. Outer Thermosphere Haze */}
+      <mesh>
+        <sphereGeometry args={[1.12, 32, 32]} />
+        <meshBasicMaterial
+          color="#0284c7"
+          transparent
+          opacity={0.07}
+          side={THREE.BackSide}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  )
+}
+
+// ────────────────────────────────────────────────────────
+// Cities Layer — Lights up when user zooms in
+// ────────────────────────────────────────────────────────
+function CitiesLayer({ zoomClose }: { zoomClose: boolean }) {
+  if (!zoomClose) return null
+
+  return (
+    <group>
+      {WORLD_CITIES.map((city) => {
+        const pos = latLonAltToXYZ(city.lat, city.lon, 0, 1.004)
+        return (
+          <group key={city.name} position={pos}>
+            {/* Glowing pin dot */}
+            <mesh>
+              <sphereGeometry args={[0.007, 8, 8]} />
+              <meshBasicMaterial color="#ffffff" />
+            </mesh>
+            <mesh>
+              <sphereGeometry args={[0.014, 8, 8]} />
+              <meshBasicMaterial color="#38bdf8" transparent opacity={0.4} />
+            </mesh>
+
+            {/* City Label */}
+            <Html distanceFactor={3.2} position={[0, 0.015, 0]} center>
+              <div className="pointer-events-none select-none px-1.5 py-0.5 rounded bg-slate-950/80 border border-cyan-500/40 text-[9px] font-mono text-cyan-200 backdrop-blur-sm whitespace-nowrap shadow-md">
+                <span className="font-bold text-white">{city.name}</span>
+                <span className="text-cyan-400/80 ml-1">({city.country})</span>
+              </div>
+            </Html>
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
+// ────────────────────────────────────────────────────────
+// Orbit Path Trace
 // ────────────────────────────────────────────────────────
 function OrbitLine({ orbitPath }: { orbitPath: OrbitPath }) {
   const points = useMemo(() => {
@@ -114,15 +188,13 @@ function OrbitLine({ orbitPath }: { orbitPath: OrbitPath }) {
 
   return (
     <group>
-      {/* Primary orbit trace */}
       <Line
         points={points}
         color="#38bdf8"
-        lineWidth={2.2}
+        lineWidth={2.4}
         transparent
-        opacity={0.85}
+        opacity={0.9}
       />
-      {/* Ambient orbit halo */}
       <Line
         points={points}
         color="#60a5fa"
@@ -135,7 +207,7 @@ function OrbitLine({ orbitPath }: { orbitPath: OrbitPath }) {
 }
 
 // ────────────────────────────────────────────────────────
-// Satellite dot (Interactive beacon in orbit)
+// Satellite Dot with Beacon & Close-Up Trigger
 // ────────────────────────────────────────────────────────
 function SatelliteDot({
   lat,
@@ -160,12 +232,12 @@ function SatelliteDot({
     const t = state.clock.elapsedTime
     if (meshRef.current) {
       if (selected) {
-        const s = 1 + Math.sin(t * 4) * 0.25
+        const s = 1 + Math.sin(t * 4) * 0.3
         meshRef.current.scale.setScalar(s)
       }
     }
     if (ringRef.current && selected) {
-      ringRef.current.scale.setScalar(1 + (t % 1) * 1.2)
+      ringRef.current.scale.setScalar(1 + (t % 1) * 1.3)
       const mat = ringRef.current.material as THREE.MeshBasicMaterial
       if (mat) mat.opacity = 1 - (t % 1)
     }
@@ -173,7 +245,6 @@ function SatelliteDot({
 
   return (
     <group position={pos}>
-      {/* Satellite core beacon */}
       <mesh
         ref={meshRef}
         onClick={(e) => {
@@ -187,28 +258,26 @@ function SatelliteDot({
           document.body.style.cursor = 'auto'
         }}
       >
-        <sphereGeometry args={[selected ? 0.024 : 0.012, 12, 12]} />
-        <meshBasicMaterial color={selected ? '#fbbf24' : '#60a5fa'} />
+        <sphereGeometry args={[selected ? 0.026 : 0.013, 12, 12]} />
+        <meshBasicMaterial color={selected ? '#38bdf8' : '#60a5fa'} />
       </mesh>
 
-      {/* Selected pulsing sonar ring */}
       {selected && (
         <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.025, 0.035, 24]} />
-          <meshBasicMaterial color="#fbbf24" transparent opacity={0.8} side={THREE.DoubleSide} />
+          <ringGeometry args={[0.028, 0.04, 24]} />
+          <meshBasicMaterial color="#38bdf8" transparent opacity={0.8} side={THREE.DoubleSide} />
         </mesh>
       )}
 
-      {/* 3D Telemetry HUD Label */}
       {selected && (
         <Html distanceFactor={4} position={[0, 0.04, 0]} center>
-          <div className="pointer-events-none select-none px-2 py-1 rounded bg-[#06101e]/90 border border-amber-400/60 shadow-lg backdrop-blur-md whitespace-nowrap">
-            <div className="text-[11px] font-bold text-amber-300 font-mono flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          <div className="pointer-events-none select-none px-2.5 py-1 rounded bg-[#030a16]/95 border border-cyan-400/80 shadow-2xl backdrop-blur-md whitespace-nowrap">
+            <div className="text-[11px] font-bold text-cyan-300 font-mono flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
               {name}
             </div>
-            <div className="text-[9px] text-white/60 font-mono">
-              {Math.round(altKm).toLocaleString()} km alt
+            <div className="text-[9px] text-slate-300 font-mono">
+              {Math.round(altKm).toLocaleString()} km alt · Scroll in for photo
             </div>
           </div>
         </Html>
@@ -218,25 +287,63 @@ function SatelliteDot({
 }
 
 // ────────────────────────────────────────────────────────
-// Camera controller — smoothly flies to selected satellite
+// Camera Controller & Zoom Detection
 // ────────────────────────────────────────────────────────
-function CameraController() {
+function CameraController({
+  onZoomChange,
+}: {
+  onZoomChange: (isClose: boolean) => void
+}) {
   const { camera } = useThree()
   const cameraTarget = useOrbitlyStore((s) => s.cameraTarget)
-  const targetRef = useRef<THREE.Vector3 | null>(null)
+  const resetCameraTrigger = useOrbitlyStore((s) => s.resetCameraTrigger)
+  const selectedSatellite = useOrbitlyStore((s) => s.selectedSatellite)
+  const setIsInspectModalOpen = useOrbitlyStore((s) => s.setIsInspectModalOpen)
+  const isInspectModalOpen = useOrbitlyStore((s) => s.isInspectModalOpen)
 
+  const targetPosRef = useRef<THREE.Vector3 | null>(null)
+  const defaultPos = useMemo(() => new THREE.Vector3(0, 0, 3.4), [])
+
+  // When target changes, calculate new camera position
   useEffect(() => {
     if (cameraTarget) {
       const [lat, lon, altKm] = cameraTarget
-      const pos = latLonAltToXYZ(lat, lon, altKm + 1800)
-      targetRef.current = pos
+      const pos = latLonAltToXYZ(lat, lon, altKm + 1600)
+      targetPosRef.current = pos
     }
   }, [cameraTarget])
 
+  // Handle explicit reset trigger
+  useEffect(() => {
+    if (resetCameraTrigger > 0) {
+      targetPosRef.current = defaultPos
+    }
+  }, [resetCameraTrigger, defaultPos])
+
   useFrame(() => {
-    if (targetRef.current) {
-      camera.position.lerp(targetRef.current, 0.04)
+    if (targetPosRef.current) {
+      camera.position.lerp(targetPosRef.current, 0.05)
       camera.lookAt(0, 0, 0)
+      if (camera.position.distanceTo(targetPosRef.current) < 0.05) {
+        targetPosRef.current = null
+      }
+    }
+
+    // Measure zoom distance to Earth center
+    const distToCenter = camera.position.length()
+    const isZoomClose = distToCenter < 2.5
+    onZoomChange(isZoomClose)
+
+    // Measure proximity to selected satellite for automatic photo inspection
+    if (selectedSatellite?.satellite.derived?.latitude != null) {
+      const sat = selectedSatellite.satellite.derived
+      const satPos = latLonAltToXYZ(sat.latitude!, sat.longitude || 0, sat.altitude_km || 420)
+      const distToSat = camera.position.distanceTo(satPos)
+
+      // When the user scrolls in close to the satellite (< 0.75 distance)
+      if (distToSat < 0.75 && !isInspectModalOpen) {
+        setIsInspectModalOpen(true)
+      }
     }
   })
 
@@ -244,37 +351,45 @@ function CameraController() {
 }
 
 // ────────────────────────────────────────────────────────
-// Scene — wires all 3D assets together
+// Scene Composition
 // ────────────────────────────────────────────────────────
-function Scene() {
-  const { selectedSatellite, selectedOrbitPath, featuredSatellites } = useOrbitlyStore()
+function Scene({ onZoomChange }: { onZoomChange: (close: boolean) => void }) {
+  const { selectedSatellite, selectedOrbitPath, featuredSatellites, setIsInspectModalOpen } = useOrbitlyStore()
   const { selectSatellite } = useSelectSatellite()
+  const [zoomClose, setZoomClose] = useState(false)
+
+  const handleZoomUpdate = (isClose: boolean) => {
+    setZoomClose(isClose)
+    onZoomChange(isClose)
+  }
 
   return (
     <>
-      {/* Dynamic Lighting */}
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[6, 3, 6]} intensity={1.6} color="#fffcf0" castShadow />
-      <pointLight position={[-10, -4, -6]} intensity={0.3} color="#3b82f6" />
+      <ambientLight intensity={0.3} />
+      <directionalLight position={[6, 3, 6]} intensity={1.8} color="#f0f9ff" />
+      <pointLight position={[-10, -4, -6]} intensity={0.4} color="#38bdf8" />
 
-      {/* Deep Space Starfield */}
+      {/* Deep Space Background Stars */}
       <Stars
-        radius={120}
+        radius={140}
         depth={60}
-        count={9000}
+        count={8000}
         factor={4.5}
         saturation={0.1}
         fade
         speed={0.4}
       />
 
-      {/* Earth */}
+      {/* Exact Match Dotted Earth */}
       <EarthMesh />
 
-      {/* Selected Orbit Path Trajectory */}
+      {/* Cities Layer (visible on zoom) */}
+      <CitiesLayer zoomClose={zoomClose} />
+
+      {/* Selected Orbit Line */}
       {selectedOrbitPath && <OrbitLine orbitPath={selectedOrbitPath} />}
 
-      {/* Selected Satellite Real-Time Position Dot */}
+      {/* Selected Satellite Dot */}
       {selectedSatellite?.satellite.derived?.latitude != null && (
         <SatelliteDot
           lat={selectedSatellite.satellite.derived.latitude}
@@ -282,14 +397,14 @@ function Scene() {
           altKm={selectedSatellite.satellite.derived.altitude_km || 420}
           selected={true}
           name={selectedSatellite.satellite.name}
+          onClick={() => setIsInspectModalOpen(true)}
         />
       )}
 
-      {/* Active Satellites Constellation (featured catalog) */}
+      {/* Featured Satellites Constellation */}
       {featuredSatellites.map((sat, idx) => {
         if (selectedSatellite?.satellite.id === sat.id) return null
         const alt = sat.altitude_km || 500
-        // Distribute featured satellites naturally across celestial coordinates
         const lat = ((idx * 43) % 130) - 65
         const lon = ((idx * 67) % 360) - 180
         return (
@@ -305,13 +420,11 @@ function Scene() {
         )
       })}
 
-      {/* Camera flight smoothing */}
-      <CameraController />
+      <CameraController onZoomChange={handleZoomUpdate} />
 
-      {/* Orbit Controls */}
       <OrbitControls
         enablePan={false}
-        minDistance={1.4}
+        minDistance={1.3}
         maxDistance={7}
         enableDamping
         dampingFactor={0.06}
@@ -323,20 +436,87 @@ function Scene() {
 }
 
 // ────────────────────────────────────────────────────────
-// Globe3D Component
+// Globe3D Main Component
 // ────────────────────────────────────────────────────────
 export function Globe3D() {
+  const {
+    selectedSatellite,
+    clearSelection,
+    isInspectModalOpen,
+    setIsInspectModalOpen,
+    setCameraTarget,
+  } = useOrbitlyStore()
+
+  const [isZoomClose, setIsZoomClose] = useState(false)
+
+  // Zoom directly to satellite
+  const handleZoomToSatellite = () => {
+    if (selectedSatellite?.satellite.derived?.latitude != null) {
+      const der = selectedSatellite.satellite.derived
+      setCameraTarget([der.latitude!, der.longitude || 0, der.altitude_km || 420])
+      setIsInspectModalOpen(true)
+    }
+  }
+
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative select-none">
+      {/* 3D Canvas */}
       <Canvas
         camera={{ position: [0, 0, 3.4], fov: 45 }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-        shadows
         dpr={[1, 2]}
         style={{ background: 'transparent' }}
       >
-        <Scene />
+        <Scene onZoomChange={setIsZoomClose} />
       </Canvas>
+
+      {/* Close-Up Satellite Photo & Inspection Modal */}
+      {isInspectModalOpen && selectedSatellite && <SatelliteCloseUpModal />}
+
+      {/* Top Floating Controls Bar */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        {selectedSatellite && (
+          <>
+            {/* Zoom to Satellite / Photo view button */}
+            <button
+              onClick={handleZoomToSatellite}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 border border-cyan-500/30 text-xs font-semibold backdrop-blur-md transition shadow-lg"
+              title="Zoom into satellite and inspect photo"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+              <span>Inspect Photo</span>
+            </button>
+
+            {/* Reset Button */}
+            <button
+              onClick={clearSelection}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-700 hover:border-cyan-500/50 text-xs font-semibold backdrop-blur-md transition shadow-lg"
+              title="Reset view and deselect satellite"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Reset View</span>
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Bottom Center Indicator (Matching the reference aesthetic) */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-none">
+        <div className="px-4 py-1.5 rounded-full bg-slate-950/80 border border-slate-800/80 text-[11px] font-mono text-slate-300 backdrop-blur-md flex items-center gap-2 shadow-xl">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          {selectedSatellite ? (
+            <span>
+              Tracking: <strong className="text-cyan-300">{selectedSatellite.satellite.name}</strong> · Scroll in to view spacecraft image
+            </span>
+          ) : (
+            <span>
+              {isZoomClose
+                ? '🔍 Zoomed In · Cities & Terrestrial Nodes Active'
+                : 'Scroll to Zoom · Select any satellite beacon to inspect'}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

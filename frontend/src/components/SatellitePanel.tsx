@@ -44,7 +44,7 @@ function OrbitTypeBadge({ type }: { type: string | null }) {
 }
 
 export function SatellitePanel() {
-  const { selectedSatellite, clearSelection } = useOrbitlyStore()
+  const { selectedSatellite, clearSelection, setIsInspectModalOpen } = useOrbitlyStore()
 
   if (!selectedSatellite) return null
 
@@ -79,10 +79,27 @@ export function SatellitePanel() {
               )}
               <OrbitTypeBadge type={der?.orbit_type ?? null} />
             </div>
+
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={() => setIsInspectModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500 text-cyan-300 hover:text-slate-950 border border-cyan-500/30 text-xs font-semibold transition"
+              >
+                <span>📷 Inspect Photo</span>
+              </button>
+              <button
+                onClick={clearSelection}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 text-xs font-semibold transition"
+              >
+                <span>↺ Reset View</span>
+              </button>
+            </div>
           </div>
           <button
             onClick={clearSelection}
             className="text-white/30 hover:text-white/80 transition-colors p-1"
+            title="Deselect satellite"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
